@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b0d12;
+  --panel: #14171f;
+  --panel-2: #1b1f2a;
+  --border: #272c3a;
+  --text: #e7e9ee;
+  --muted: #8b93a7;
+  --accent: #6c8cff;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  overscroll-behavior: none;
+}
+
+/* The canvas owns all pointer gestures; stop the browser from panning or
+   zooming the page out from under a trackpad drag. */
+.canvas-surface {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
