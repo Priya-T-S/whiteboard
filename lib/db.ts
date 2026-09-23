@@ -3,12 +3,21 @@ import { createClient, type Client } from "@libsql/client";
 let clientPromise: Promise<Client> | null = null;
 
 function makeClient(): Client {
-  const url = process.env.TURSO_DATABASE_URL;
+  const url = process.env.TURSO_DATABASE_URL?.trim();
   if (url) {
-    return createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN });
+    return createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN?.trim() });
   }
-  // No Turso credentials configured: fall back to a local SQLite file so the
-  // app runs out of the box. Same libSQL API either way.
+  if (process.env.NODE_ENV === "production") {
+    // The local-file fallback needs a writable disk, which a deployment
+    // usually does not have. Say so plainly instead of failing deep inside a
+    // server render, where the message gets stripped from the build.
+    throw new Error(
+      "TURSO_DATABASE_URL is not set. Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN " +
+        "in the deployment environment - the local SQLite fallback is development only.",
+    );
+  }
+  // Development with no credentials: a local SQLite file, so the app runs
+  // out of the box. Same libSQL API either way.
   return createClient({ url: "file:whiteboard.db" });
 }
 
@@ -52,6 +61,9 @@ export function getDb(): Promise<Client> {
       return db;
     })().catch((err) => {
       clientPromise = null;
+      // Server Component errors are minified in production builds, so make
+      // sure the real reason reaches the server log.
+      console.error("[whiteboard] database unavailable:", err);
       throw err;
     });
   }
